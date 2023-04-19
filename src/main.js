@@ -20,22 +20,38 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(4, 1, -4);
+camera.position.set(4, 1, 2);
 
 const controls = new OrbitControls(camera, canvas);
+
+const updateAllMaterials = () => {
+  scene.traverse((child) => {
+    if (
+      child instanceof THREE.Mesh &&
+      child.material instanceof THREE.MeshStandardMaterial
+    ) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+};
 
 const gltfLoader = new GLTFLoader();
 gltfLoader.load('/model.glb', (gltf) => {
   const model = gltf.scene.children[0].children[0];
   model.position.set(0, 0, 0);
-  console.log('model,', model);
   model.scale.set(0.1, 0.1, 0.1);
   scene.add(model);
+  updateAllMaterials();
 });
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
 const directionalLight = new THREE.DirectionalLight('#ffffff', 0.6);
+
 directionalLight.position.set(5.5, 3, 4.5);
+directionalLight.castShadow = true;
+directionalLight.shadow.mapSize.set(512, 512);
+directionalLight.shadow.normalBias = 0.05;
 
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
@@ -45,8 +61,10 @@ renderer.setSize(parameters.screenSize.width, parameters.screenSize.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.physicallyCorrectLights = true;
 renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMapping = THREE.LinearToneMapping;
 renderer.toneMappingExposure = 3;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 //helpers
 // y green
@@ -66,7 +84,6 @@ scene.add(
   directionalLightHelper
 );
 
-// controllers
 gui
   .add(directionalLight.position, 'x')
   .min(-10)
@@ -88,24 +105,6 @@ gui
   .step(0.1)
   .name('Directional Light Position Z')
   .onChange(() => directionalLightHelper.update());
-// gui
-//   .add(directionalLight.target.position, 'x')
-//   .min(-10)
-//   .max(10)
-//   .step(0.1)
-//   .name('Directional Light Target X');
-// gui
-//   .add(directionalLight.target.position, 'y')
-//   .min(-10)
-//   .max(10)
-//   .step(0.1)
-//   .name('Directional Light Target Y');
-// gui
-//   .add(directionalLight.target.position, 'z')
-//   .min(-10)
-//   .max(10)
-//   .step(0.1)
-//   .name('Directional Light Target Z');
 gui
   .add(directionalLight, 'intensity')
   .min(0)
@@ -128,10 +127,23 @@ gui.add(renderer, 'toneMapping', {
 
 gui.add(renderer, 'toneMappingExposure').min(0).max(10).step(0.001);
 
+window.addEventListener('resize', () => {
+  // Update sizes
+  parameters.screenSize.width = window.innerWidth;
+  parameters.screenSize.height = window.innerHeight;
+
+  // Update camera
+  camera.aspect = parameters.screenSize.width / parameters.screenSize.height;
+  camera.updateProjectionMatrix();
+
+  // Update renderer
+  renderer.setSize(parameters.screenSize.width, parameters.screenSize.height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+});
+
 const tick = () => {
   // Update controls
   controls.update();
-  console.log('target', directionalLight.target.position);
 
   // Render
   renderer.render(scene, camera);

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import GUI from 'lil-gui';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import Stats from 'stats.js';
 
 const parameters = {
   screenSize: {
@@ -9,6 +10,10 @@ const parameters = {
     height: window.innerHeight,
   },
 };
+
+const stats = new Stats();
+stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild(stats.dom);
 
 const gui = new GUI();
 const canvas = document.getElementById('three-canvas');
@@ -144,6 +149,12 @@ window.addEventListener('resize', () => {
 const tick = () => {
   // Update controls
   controls.update();
+
+  stats.begin();
+
+  // monitored code goes here
+
+  stats.end();
 
   // Render
   renderer.render(scene, camera);

@@ -81,6 +81,28 @@ const directionalLightHelper = new THREE.DirectionalLightHelper(
   directionalLight
 );
 
+const splineSpotLight = new THREE.SpotLight({
+  color: new THREE.Color(1, 1, 1),
+  intensity: 1,
+  distance: 2000,
+  angle: 0.523,
+  penumbra: 0,
+  decay: 1,
+});
+
+splineSpotLight.castShadow = true;
+splineSpotLight.position.set(0, 180.15, -139.18);
+
+const splinePointLight = new THREE.PointLight({
+  color: new THREE.Color(1, 0.934, 0.691),
+  intensity: 0.475,
+  distance: 2583,
+  decay: 4,
+});
+
+splinePointLight.castShadow = true;
+splinePointLight.position.set(164.17, 237.82, 6.5);
+
 scene.add(
   camera,
   ambientLight,

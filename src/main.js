@@ -41,10 +41,12 @@ const updateAllMaterials = () => {
 };
 
 const loader = new SplineLoader();
-loader.load('/scene.splinecode', (splineScene) => {
-  const model = splineScene.children[2];
-  scene.add(model);
+loader.load('/scene2.splinecode', (splineScene) => {
+  const plane = splineScene.children[0];
+  const model = splineScene.children[6];
+  scene.add(plane, model);
   updateAllMaterials();
+  console.log(splineScene);
 });
 
 const renderer = new THREE.WebGLRenderer({
@@ -53,28 +55,30 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(parameters.screenSize.width, parameters.screenSize.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-// renderer.physicallyCorrectLights = true;
-// renderer.useLegacyLights = true;
-// renderer.outputEncoding = THREE.sRGBEncoding;
-// renderer.toneMapping = THREE.LinearToneMapping;
-// renderer.toneMappingExposure = 3;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
+scene.background = new THREE.Color('#ffdc5f');
 
 const spotlight = new THREE.SpotLight(
   new THREE.Color(1, 1, 1),
-  1,
+  3.16,
   2000,
   Math.PI / 6,
-  0,
-  1
+  0.2,
+  10.9
 );
 
 const pointLight = new THREE.PointLight(
-  new THREE.Color(1, 0.934, 0.691),
+  new THREE.Color('#ffeeb0'),
   0.475,
   2583,
   4
+);
+const pointLight2 = new THREE.PointLight(
+  new THREE.Color('#dc830c'),
+  0.55,
+  0,
+  10
 );
 
 const directionalLight = new THREE.DirectionalLight(
@@ -94,12 +98,22 @@ spotlight.position.set(0, 180.15, -139.18);
 pointLight.castShadow = true;
 pointLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
 pointLight.position.set(164.17, 237.82, 6.5);
+pointLight2.castShadow = true;
+pointLight2.shadow.mapSize = new THREE.Vector2(1024, 1024);
+pointLight2.position.set(-2.05, 136.3, -68.4);
 directionalLight.position.set(-145.85, 300, 206.22);
 directionalLight.castShadow = true;
 directionalLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
 hemiLight.position.set(0, 1, 0);
 
-scene.add(camera, spotlight, directionalLight, pointLight, hemiLight);
+scene.add(
+  camera,
+  spotlight,
+  directionalLight,
+  pointLight,
+  hemiLight,
+  pointLight2
+);
 
 window.addEventListener('resize', () => {
   // Update sizes
@@ -114,7 +128,7 @@ window.addEventListener('resize', () => {
   renderer.setSize(parameters.screenSize.width, parameters.screenSize.height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
-
+console.log('scene', scene);
 const tick = () => {
   // Update controls
   controls.update();

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import GUI from 'lil-gui';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Stats from 'stats.js';
+import SplineLoader from '@splinetool/loader';
 
 const parameters = {
   screenSize: {
@@ -19,44 +19,33 @@ const gui = new GUI();
 const canvas = document.getElementById('three-canvas');
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(
-  75,
-  parameters.screenSize.width / parameters.screenSize.height,
-  0.1,
-  100
+const camera = new THREE.OrthographicCamera(
+  window.innerWidth / -2,
+  window.innerWidth / 2,
+  window.innerHeight / 2,
+  window.innerHeight / -2,
+  1,
+  100000
 );
-camera.position.set(4, 1, 2);
-
+camera.position.set(553.79, 636.29, 541.97);
+camera.quaternion.setFromEuler(new THREE.Euler(-0.48, 0.71, 0.33));
 const controls = new OrbitControls(camera, canvas);
 
 const updateAllMaterials = () => {
   scene.traverse((child) => {
-    if (
-      child instanceof THREE.Mesh &&
-      child.material instanceof THREE.MeshStandardMaterial
-    ) {
+    if (child instanceof THREE.Mesh) {
       child.castShadow = true;
       child.receiveShadow = true;
     }
   });
 };
 
-const gltfLoader = new GLTFLoader();
-gltfLoader.load('/model.glb', (gltf) => {
-  const model = gltf.scene.children[0].children[0];
-  model.position.set(0, 0, 0);
-  model.scale.set(0.1, 0.1, 0.1);
+const loader = new SplineLoader();
+loader.load('/scene.splinecode', (splineScene) => {
+  const model = splineScene.children[2];
   scene.add(model);
   updateAllMaterials();
 });
-
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-const directionalLight = new THREE.DirectionalLight('#ffffff', 0.6);
-
-directionalLight.position.set(5.5, 3, 4.5);
-directionalLight.castShadow = true;
-directionalLight.shadow.mapSize.set(512, 512);
-directionalLight.shadow.normalBias = 0.05;
 
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
@@ -64,95 +53,53 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(parameters.screenSize.width, parameters.screenSize.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.physicallyCorrectLights = true;
-renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.toneMapping = THREE.LinearToneMapping;
-renderer.toneMappingExposure = 3;
+// renderer.physicallyCorrectLights = true;
+// renderer.useLegacyLights = true;
+// renderer.outputEncoding = THREE.sRGBEncoding;
+// renderer.toneMapping = THREE.LinearToneMapping;
+// renderer.toneMappingExposure = 3;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 
-//helpers
-// y green
-// x red
-// z blue
-const axesHelper = new THREE.AxesHelper(5);
-axesHelper.position.set(0, 0, 0);
-const directionalLightHelper = new THREE.DirectionalLightHelper(
-  directionalLight
+const spotlight = new THREE.SpotLight(
+  new THREE.Color(1, 1, 1),
+  1,
+  2000,
+  Math.PI / 6,
+  0,
+  1
 );
 
-const splineSpotLight = new THREE.SpotLight({
-  color: new THREE.Color(1, 1, 1),
-  intensity: 1,
-  distance: 2000,
-  angle: 0.523,
-  penumbra: 0,
-  decay: 1,
-});
-
-splineSpotLight.castShadow = true;
-splineSpotLight.position.set(0, 180.15, -139.18);
-
-const splinePointLight = new THREE.PointLight({
-  color: new THREE.Color(1, 0.934, 0.691),
-  intensity: 0.475,
-  distance: 2583,
-  decay: 4,
-});
-
-splinePointLight.castShadow = true;
-splinePointLight.position.set(164.17, 237.82, 6.5);
-
-scene.add(
-  camera,
-  ambientLight,
-  directionalLight,
-  axesHelper,
-  directionalLightHelper
+const pointLight = new THREE.PointLight(
+  new THREE.Color(1, 0.934, 0.691),
+  0.475,
+  2583,
+  4
 );
 
-gui
-  .add(directionalLight.position, 'x')
-  .min(-10)
-  .max(10)
-  .step(0.1)
-  .name('Directional Light Position X')
-  .onChange(() => directionalLightHelper.update());
-gui
-  .add(directionalLight.position, 'y')
-  .min(-10)
-  .max(10)
-  .step(0.1)
-  .name('Directional Light Position Y')
-  .onChange(() => directionalLightHelper.update());
-gui
-  .add(directionalLight.position, 'z')
-  .min(-10)
-  .max(10)
-  .step(0.1)
-  .name('Directional Light Position Z')
-  .onChange(() => directionalLightHelper.update());
-gui
-  .add(directionalLight, 'intensity')
-  .min(0)
-  .max(10)
-  .step(0.01)
-  .name('Directional Light Intensity');
-gui
-  .add(ambientLight, 'intensity')
-  .min(0)
-  .max(10)
-  .step(0.01)
-  .name('Ambient Light Intensity');
-gui.add(renderer, 'toneMapping', {
-  No: THREE.NoToneMapping,
-  Linear: THREE.LinearToneMapping,
-  Reinhard: THREE.ReinhardToneMapping,
-  Cineon: THREE.CineonToneMapping,
-  ACESFilmic: THREE.ACESFilmicToneMapping,
-});
+const directionalLight = new THREE.DirectionalLight(
+  new THREE.Color(1, 1, 1),
+  0.562
+);
 
-gui.add(renderer, 'toneMappingExposure').min(0).max(10).step(0.001);
+const hemiLight = new THREE.HemisphereLight(
+  new THREE.Color(0.159, 0.089, 0.845),
+  new THREE.Color(0.509, 0.509, 0.509),
+  0.337
+);
+
+spotlight.castShadow = true;
+spotlight.shadow.mapSize = new THREE.Vector2(1024, 1024);
+spotlight.position.set(0, 180.15, -139.18);
+pointLight.castShadow = true;
+pointLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
+pointLight.position.set(164.17, 237.82, 6.5);
+directionalLight.position.set(-145.85, 300, 206.22);
+directionalLight.castShadow = true;
+directionalLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
+hemiLight.position.set(0, 1, 0);
+
+scene.add(camera, spotlight, directionalLight, pointLight, hemiLight);
 
 window.addEventListener('resize', () => {
   // Update sizes
@@ -184,6 +131,5 @@ const tick = () => {
   // Call tick again on the next frame
   window.requestAnimationFrame(tick);
 };
-//
 
 tick();

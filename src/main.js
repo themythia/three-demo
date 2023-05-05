@@ -9,6 +9,7 @@ const parameters = {
     width: window.innerWidth,
     height: window.innerHeight,
   },
+  aspectRatio: window.innerWidth / window.innerHeight,
 };
 
 const stats = new Stats();
@@ -46,7 +47,6 @@ loader.load('/scene2.splinecode', (splineScene) => {
   const model = splineScene.children[6];
   scene.add(plane, model);
   updateAllMaterials();
-  console.log(splineScene);
 });
 
 const renderer = new THREE.WebGLRenderer({
@@ -119,16 +119,22 @@ window.addEventListener('resize', () => {
   // Update sizes
   parameters.screenSize.width = window.innerWidth;
   parameters.screenSize.height = window.innerHeight;
+  parameters.aspectRatio =
+    parameters.screenSize.width / parameters.screenSize.height;
 
   // Update camera
-  camera.aspect = parameters.screenSize.width / parameters.screenSize.height;
+  camera.left = window.innerWidth / -2;
+  camera.right = window.innerWidth / 2;
+  camera.top = window.innerHeight / 2;
+  camera.bottom = window.innerHeight / -2;
+  camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
 
   // Update renderer
   renderer.setSize(parameters.screenSize.width, parameters.screenSize.height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
-console.log('scene', scene);
+
 const tick = () => {
   // Update controls
   controls.update();

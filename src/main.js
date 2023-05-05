@@ -38,6 +38,7 @@ const parameters = {
       ground: '#828282',
     },
   },
+  sceneBg: '#ffdc5f',
 };
 
 const stats = new Stats();
@@ -85,7 +86,7 @@ renderer.setSize(parameters.screenSize.width, parameters.screenSize.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
-scene.background = new THREE.Color('#ffdc5f');
+scene.background = new THREE.Color(parameters.sceneBg);
 
 const spotlight = new THREE.SpotLight(
   new THREE.Color(parameters.lightColors.spotLight),
@@ -159,7 +160,9 @@ const directionalLightHelper = new THREE.DirectionalLightHelper(
   10
 );
 const hemiLightHelper = new THREE.HemisphereLightHelper(hemiLight, 10);
-
+gui
+  .addColor(parameters, 'sceneBg')
+  .onChange(() => scene.background.set(parameters.sceneBg));
 gui.add(parameters, 'addHelpers');
 gui.add(parameters, 'removeHelpers');
 
